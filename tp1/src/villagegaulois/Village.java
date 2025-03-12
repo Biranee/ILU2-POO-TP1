@@ -12,10 +12,12 @@ public class Village {
 	private Chef chef;
 	private Gaulois[] villageois;
 	private int nbVillageois = 0;
-
-	public Village(String nom, int nbVillageoisMaximum) {
+	
+	private Marche marche;
+	public Village(String nom, int nbVillageoisMaximum,int nbEtals) {
 		this.nom = nom;
 		villageois = new Gaulois[nbVillageoisMaximum];
+		this.marche = new Marche(nbEtals);
 	}
 
 	public String getNom() {
@@ -111,8 +113,6 @@ public class Village {
         int nbEtalLibre = 0;
         for (Etal etal : etals) {
             if (etal.isEtalOccupe()) {
-                // On suppose que la méthode acherEtal() existe dans Etal et retourne
-                // une chaîne du format : "Assurancetourix vend 5 lyres\n"
                 chaine.append(etal.afficherEtal());
             } else {
                 nbEtalLibre++;
@@ -121,9 +121,56 @@ public class Village {
         chaine.append("Il reste " + nbEtalLibre + " étals non utilisés dans le marché.\n");
         return chaine.toString();
     }
+	}
+	
+	public String installerVendeur(Gaulois vendeur, String produit, int nbProduit) {
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(vendeur.getNom() + " cherche un endroit pour vendre " + nbProduit + " " + produit + ".\n");
+	    int indice = marche.trouverEtalLibre();
+	    if (indice != -1) {
+	        marche.utiliserEtals(indice, vendeur, produit, nbProduit);
+	        sb.append("Le vendeur " + vendeur.getNom() + " vend " + produit + " à l'étal n°" + (indice + 1) + ".\n");
+	    } else {
+	        sb.append("Aucun étal disponible pour " + vendeur.getNom() + ".\n");
+	    }
+	    return sb.toString();
+	}
+	
+	public String rechercherVendeursProduit(String produit) {
+	    StringBuilder sb = new StringBuilder();
+	    Etal[] etals = marche.trouverEtals(produit);
+	    if (etals.length == 0) {
+	        sb.append("Il n'y a pas de vendeur qui propose des " + produit + " au marché.\n");
+	    } else {
+	        sb.append("Les vendeurs qui proposent des " + produit + " sont :\n");
+	        for (Etal etal : etals) {
+	            sb.append("- " + etal.getVendeur().getNom() + "\n");
+	        }
+	    }
+	    return sb.toString();
+	}
+	
+	public Etal rechercherEtal(Gaulois vendeur) {
+	    return marche.trouverVendeur(vendeur);
+	}
+	
+	public String partirVendeur(Gaulois vendeur) {
+	    Etal etal = rechercherEtal(vendeur);
+	    if (etal != null) {
+	        return etal.libererEtal();
+	    } else {
+	        return vendeur.getNom() + " n'est pas installé sur un étal.\n";
+	    }
+	}
+	
+	public String afficherMarche() {
+	    return marche.afficherMarche();
+	}
 
 	
-	}
+	
+	
+	
 	
 	
 }
