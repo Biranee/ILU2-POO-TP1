@@ -6,6 +6,24 @@ public class Gaulois extends Personnage {
 	public Gaulois(String nom, int force) {
 		super(nom, force);
 	}
+	@Override
+	public boolean equals(Object obj) {
+	    if (this == obj) {
+	        return true;
+	    }
+	    if (obj == null || getClass() != obj.getClass()) {
+	        return false;
+	    }
+	    Gaulois other = (Gaulois) obj;
+	    
+	    return this.getNom().equals(other.getNom());
+	}
+
+	@Override
+	public int hashCode() {
+	    return this.getNom().hashCode();
+	}
+
 
 	@Override
 	protected String prendreParole() {
