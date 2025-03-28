@@ -42,9 +42,8 @@ public class Etal {
     
     public String acheterProduit(int quantiteAcheter, Gaulois acheteur) {
         if (acheteur == null) {
-            NullPointerException npe = new NullPointerException("L'acheteur ne doit pas être null");
-            npe.printStackTrace(System.err);
-            return "";
+            throw new IllegalArgumentException("L'acheteur ne doit pas être null");
+            
         }
         if (quantiteAcheter < 1) {
             throw new IllegalArgumentException("La quantité doit être positive");

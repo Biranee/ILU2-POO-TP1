@@ -1,0 +1,521 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Bold;\f2\fnil\fcharset0 Menlo-Regular;
+\f3\fnil\fcharset0 Menlo-BoldItalic;}
+{\colortbl;\red255\green255\blue255;\red127\green0\blue85;\red0\green0\blue192;\red106\green62\blue62;
+\red63\green127\blue95;\red42\green0\blue255;\red127\green159\blue191;}
+{\*\expandedcolortbl;;\csgenericrgb\c49804\c0\c33333;\csgenericrgb\c0\c0\c75294;\csgenericrgb\c41569\c24314\c24314;
+\csgenericrgb\c24706\c49804\c37255;\csgenericrgb\c16471\c0\c100000;\csgenericrgb\c49804\c62353\c74902;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 package villagegaulois;\
+\
+import personnages.Gaulois;\
+import exceptions.VillageSansChefException;\
+\
+public class Village \{\
+    private String nom;\
+    private Chef chef;\
+    private Gaulois[] villageois;\
+    private int nbVillageois = 0;\
+    private Marche marche;\
+\
+    public Village(String nom, int nbVillageoisMaximum, int nbEtals) \{\
+        this.nom = nom;\
+        villageois = new Gaulois[nbVillageoisMaximum];\
+        this.marche = new Marche(nbEtals);\
+    \}\
+    \
+    public void setChef(Chef chef) \{\
+        this.chef = chef;\
+    \}\
+    \
+    public void ajouterHabitant(Gaulois gaulois) \{\
+        if (nbVillageois < villageois.length) \{\
+            villageois[nbVillageois] = gaulois;\
+            nbVillageois++;\
+        \}\
+    \}\
+    \
+    public String afficherVillageois() throws VillageSansChefException \{\
+        if (chef == null) \{\
+            throw new VillageSansChefException("Le village " + nom + " n'a pas de chef.");\
+        \}\
+        StringBuilder sb = new StringBuilder();\
+        if (nbVillageois < 1) \{\
+            sb.append("Il n'y a encore aucun habitant au village du chef " + chef.getNom() + ".\\n");\
+        \} else \{\
+            sb.append("Au village du chef " + chef.getNom() + " vivent les l\'e9gendaires gaulois :\\n");\
+            for (int i = 0; i < nbVillageois; i++) \{\
+                sb.append("- " + villageois[i].getNom() + "\\n");\
+            \}\
+        \}\
+        return sb.toString();\
+    \}\
+    \
+    public String installerVendeur(Gaulois vendeur, String produit, int nbProduit) \{\
+        StringBuilder sb = new StringBuilder();\
+        sb.append(vendeur.getNom() + " cherche un endroit pour vendre " + nbProduit + " " + produit + ".\\n");\
+        int indice = marche.trouverEtalLibre();\
+        if (indice != -1) \{\
+            marche.utiliserEtal(indice, vendeur, produit, nbProduit);\
+            sb.append("Le vendeur " + vendeur.getNom() + " vend " + produit + " \'e0 l'\'e9tal n\'b0" + (indice + 1) + ".\\n");\
+        \} else \{\
+            sb.append("Aucun \'e9tal disponible pour " + vendeur.getNom() + ".\\n");\
+        \}\
+        return sb.toString();\
+    \}\
+    \
+    public Etal rechercherEtal(Gaulois vendeur) \{\
+        return marche.trouverVendeur(vendeur);\
+    \}\
+    \
+    public String partirVendeur(Gaulois vendeur) \{\
+        Etal etal = rechercherEtal(vendeur);\
+        if (etal != null) \{\
+            return etal.libererEtal();\
+        \}\
+        return vendeur.getNom() + " n'est pas install\'e9 sur un \'e9tal.\\n";\
+    \}\
+    \
+    public String afficherMarche() \{\
+        return marche.afficherMarche();\
+    \}\
+    \
+    // Classe interne Marche\
+    public class Marche \{\
+        private Etal[] etals;\
+        \
+        public Marche(int nombreEtals) \{\
+            System.out.println("[DEBUG] Cr\'e9ation du march\'e9 avec " + nombreEtals + " \'e9tals");\
+            etals = new Etal[nombreEtals];\
+            for (int i = 0; i < nombreEtals; i++) \{\
+                etals[i] = new Etal();  // Cr\'e9e un nouvel \'e9tal libre (etalOccupe est false par d\'e9faut)\
+            \}\
+        \}\
+        \
+        public void utiliserEtal(int indiceEtal, Gaulois vendeur, String produit, int nbProduit) \{\
+            if (indiceEtal >= 0 && indiceEtal < etals.length) \{\
+                etals[indiceEtal].occuperEtal(vendeur, produit, nbProduit);\
+            \}\
+        \}\
+        \
+        public int trouverEtalLibre() \{\
+            for (int i = 0; i < etals.length; i++) \{\
+                System.out.println("[DEBUG] etal[" + i + "] isOccupe = " + etals[i].isEtalOccupe());\
+                if (!etals[i].isEtalOccupe()) \{\
+                    return i;\
+                \}\
+            \}\
+            return -1;\
+        \}\
+        \
+        public Etal trouverVendeur(Gaulois vendeur) \{\
+            for (int i = 0; i < etals.length; i++) \{\
+                if (etals[i].isEtalOccupe() && etals[i].getVendeur().equals(vendeur)) \{\
+                    return etals[i];\
+                \}\
+            \}\
+            return null;\
+        \}\
+        \
+        public String afficherMarche() \{\
+            StringBuilder sb = new StringBuilder();\
+            int nbEtalLibre = 0;\
+            for (int i = 0; i < etals.length; i++) \{\
+                if (etals[i].isEtalOccupe()) \{\
+                    sb.append(etals[i].acherEtal());\
+                \} else \{\
+                    nbEtalLibre++;\
+                \}\
+            \}\
+            sb.append("Il reste " + nbEtalLibre + " \'e9tals non utilis\'e9s dans le march\'e9.\\n");\
+            return sb.toString();\
+        \}\
+    \}\
+\}\
+\
+\
+\
+\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b \cf2 package
+\f2\b0 \cf0  villagegaulois;\
+\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  personnages.Gaulois;\
+\
+
+\f1\b \cf2 public
+\f2\b0 \cf0  
+\f1\b \cf2 class
+\f2\b0 \cf0  Etal \{\
+	
+\f1\b \cf2 private
+\f2\b0 \cf0  Gaulois \cf3 vendeur\cf0 ;\
+	
+\f1\b \cf2 private
+\f2\b0 \cf0  String \cf3 produit\cf0 ;\
+	
+\f1\b \cf2 private
+\f2\b0 \cf0  
+\f1\b \cf2 int
+\f2\b0 \cf0  \cf3 quantiteDebutMarche\cf0 ;\
+	
+\f1\b \cf2 private
+\f2\b0 \cf0  
+\f1\b \cf2 int
+\f2\b0 \cf0  \cf3 quantite\cf0 ;\
+	
+\f1\b \cf2 private
+\f2\b0 \cf0  
+\f1\b \cf2 boolean
+\f2\b0 \cf0  \cf3 etalOccupe\cf0  = 
+\f1\b \cf2 false
+\f2\b0 \cf0 ;\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  
+\f1\b \cf2 boolean
+\f2\b0 \cf0  isEtalOccupe() \{\
+		
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf3 etalOccupe\cf0 ;\
+	\}\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  Gaulois getVendeur() \{\
+		
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf3 vendeur\cf0 ;\
+	\}\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  
+\f1\b \cf2 void
+\f2\b0 \cf0  occuperEtal(Gaulois \cf4 vendeur\cf0 , String \cf4 produit\cf0 , 
+\f1\b \cf2 int
+\f2\b0 \cf0  \cf4 quantite\cf0 ) \{\
+		
+\f1\b \cf2 this
+\f2\b0 \cf0 .\cf3 vendeur\cf0  = \cf4 vendeur\cf0 ;\
+		
+\f1\b \cf2 this
+\f2\b0 \cf0 .\cf3 produit\cf0  = \cf4 produit\cf0 ;\
+		
+\f1\b \cf2 this
+\f2\b0 \cf0 .\cf3 quantite\cf0  = \cf4 quantite\cf0 ;\
+		\cf3 quantiteDebutMarche\cf0  = \cf4 quantite\cf0 ;\
+		\cf3 etalOccupe\cf0  = 
+\f1\b \cf2 true
+\f2\b0 \cf0 ;\
+	\}\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  String libererEtal() \{\
+	    
+\f1\b \cf2 try
+\f2\b0 \cf0  \{\
+	        
+\f1\b \cf2 if
+\f2\b0 \cf0  (!\cf3 etalOccupe\cf0 ) \{\
+	            \cf5 // Lancer \ul une\ulnone  exception \ul si\ulnone  l'\'e9tal n'a \ul jamais\ulnone  \ul \'e9t\'e9\ulnone  \ul occup\'e9\cf0 \ulnone \
+	            
+\f1\b \cf2 throw
+\f2\b0 \cf0  
+\f1\b \cf2 new
+\f2\b0 \cf0  IllegalStateException(\cf6 "L'\'e9tal n'est pas occup\'e9, il ne peut pas \'eatre lib\'e9r\'e9."\cf0 );\
+	        \}\
+	        \cf3 etalOccupe\cf0  = 
+\f1\b \cf2 false
+\f2\b0 \cf0 ;\
+	        StringBuilder \cf4 chaine\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  StringBuilder(\cf6 "Le vendeur "\cf0  + \cf3 vendeur\cf0 .getNom() + \cf6 " quitte son \'e9tal, "\cf0 );\
+	        
+\f1\b \cf2 int
+\f2\b0 \cf0  \cf4 produitVendu\cf0  = \cf3 quantiteDebutMarche\cf0  - \cf3 quantite\cf0 ;\
+	        
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf4 produitVendu\cf0  > 0) \{\
+	            \cf4 chaine\cf0 .append(\cf6 "il a vendu "\cf0  + \cf4 produitVendu\cf0  + \cf6 " parmi "\cf0  + \cf3 produit\cf0  + \cf6 ".\\n"\cf0 );\
+	        \} 
+\f1\b \cf2 else
+\f2\b0 \cf0  \{\
+	            \cf4 chaine\cf0 .append(\cf6 "il n'a malheureusement rien vendu.\\n"\cf0 );\
+	        \}\
+	        
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf4 chaine\cf0 .toString();\
+	    \} 
+\f1\b \cf2 catch
+\f2\b0 \cf0  (IllegalStateException \cf4 e\cf0 ) \{\
+	        \cf5 // \ul Ici\ulnone , on \ul interrompt\ulnone  \ul le\ulnone  bloc \ul et\ulnone  on \ul g\'e8re\ulnone  l'exception \ul en\ulnone  \ul retournant\ulnone  \ul un\ulnone  message d'erreur\cf0 \
+	        
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf4 e\cf0 .getMessage();\
+	    \}\
+	\}\
+\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  String afficherEtal() \{\
+		
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf3 etalOccupe\cf0 ) \{\
+			
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf6 "L'\'e9tal de "\cf0  + \cf3 vendeur\cf0 .getNom() + \cf6 " est garni de "\cf0  + \cf3 quantite\cf0 \
+					+ \cf6 " "\cf0  + \cf3 produit\cf0  + \cf6 "\\n"\cf0 ;\
+		\}\
+		
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf6 "L'\'e9tal est libre"\cf0 ;\
+	\}\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  String acheterProduit(
+\f1\b \cf2 int
+\f2\b0 \cf0  \cf4 quantiteAcheter\cf0 , Gaulois \cf4 acheteur\cf0 ) \{\
+		
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf4 acheteur\cf0  == 
+\f1\b \cf2 null
+\f2\b0 \cf0 ) \{\
+		    NullPointerException \cf4 npe\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  NullPointerException(\cf6 "L'acheteur ne doit pas \'eatre null"\cf0 );\
+		    \cf4 npe\cf0 .printStackTrace(\ul System.
+\f3\i\b \cf3 \ulc3 err
+\f2\i0\b0 \cf0 \ulnone );\
+		    
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf6 ""\cf0 ;\
+		\}\
+		
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf4 quantiteAcheter\cf0  < 1) \{\
+		    
+\f1\b \cf2 throw
+\f2\b0 \cf0  
+\f1\b \cf2 new
+\f2\b0 \cf0  IllegalArgumentException(\cf6 "La quantit\'e9 doit \'eatre positive"\cf0 );\
+		\}\
+		
+\f1\b \cf2 if
+\f2\b0 \cf0  (!\cf3 etalOccupe\cf0 ) \{\
+		    
+\f1\b \cf2 throw
+\f2\b0 \cf0  
+\f1\b \cf2 new
+\f2\b0 \cf0  IllegalStateException(\cf6 "L'\'e9tal n'est pas occup\'e9"\cf0 );\
+		\}\
+\
+			StringBuilder \cf4 chaine\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  StringBuilder();\
+			\cf4 chaine\cf0 .append(\cf4 acheteur\cf0 .getNom() + \cf6 " veut acheter "\cf0  + \cf4 quantiteAcheter\cf0 \
+					+ \cf6 " "\cf0  + \cf3 produit\cf0  + \cf6 " \'e0 "\cf0  + \cf3 vendeur\cf0 .getNom());\
+			\
+			
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf3 quantite\cf0  == 0) \{\
+				\cf4 chaine\cf0 .append(\cf6 ", malheureusement il n'y en a plus !"\cf0 );\
+				\cf4 quantiteAcheter\cf0  = 0;\
+			\}\
+			
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf4 quantiteAcheter\cf0  > \cf3 quantite\cf0 ) \{\
+				\cf4 chaine\cf0 .append(\cf6 ", comme il n'y en a plus que "\cf0  + \cf3 quantite\cf0  + \cf6 ", "\cf0 \
+						+ \cf4 acheteur\cf0 .getNom() + \cf6 " vide l'\'e9tal de "\cf0 \
+						+ \cf3 vendeur\cf0 .getNom() + \cf6 ".\\n"\cf0 );\
+				\cf4 quantiteAcheter\cf0  = \cf3 quantite\cf0 ;\
+				\cf3 quantite\cf0  = 0;\
+			\}\
+			
+\f1\b \cf2 if
+\f2\b0 \cf0  (\cf3 quantite\cf0  != 0) \{\
+				\cf3 quantite\cf0  -= \cf4 quantiteAcheter\cf0 ;\
+				\cf4 chaine\cf0 .append(\cf6 ". "\cf0  + \cf4 acheteur\cf0 .getNom()\
+						+ \cf6 ", est ravi de tout trouver sur l'\'e9tal de "\cf0 \
+						+ \cf3 vendeur\cf0 .getNom() + \cf6 "\\n"\cf0 );\
+			\}\
+			
+\f1\b \cf2 return
+\f2\b0 \cf0  \cf4 chaine\cf0 .toString();\
+	\
+	\}\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  
+\f1\b \cf2 boolean
+\f2\b0 \cf0  contientProduit(String \cf4 produit\cf0 ) \{\
+		
+\f1\b \cf2 return
+\f2\b0 \cf0  
+\f1\b \cf2 this
+\f2\b0 \cf0 .\cf3 produit\cf0 .equals(\cf4 produit\cf0 );\
+	\}\
+\
+\}\
+\
+\
+\
+\
+
+\f1\b \cf2 package
+\f2\b0 \cf0  histoire;\
+\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  personnages.Chef;\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  personnages.Druide;\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  personnages.Gaulois;\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  villagegaulois.Etal;\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  villagegaulois.Village;\
+\
+\
+
+\f1\b \cf2 import
+\f2\b0 \cf0  exeptions.VillageSansChefException;\
+\
+
+\f1\b \cf2 public
+\f2\b0 \cf0  
+\f1\b \cf2 class
+\f2\b0 \cf0  Scenario \{\
+\
+	
+\f1\b \cf2 public
+\f2\b0 \cf0  
+\f1\b \cf2 static
+\f2\b0 \cf0  
+\f1\b \cf2 void
+\f2\b0 \cf0  main(String[] \cf4 args\cf0 ) \{\
+		Village \cf4 village\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Village(\cf6 "le village des irr\'e9ductibles"\cf0 , 10, 5);\
+		
+\f1\b \cf2 try
+\f2\b0 \cf0  \{\
+            \ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .afficherVillageois());\
+        \} \
+		
+\f1\b \cf2 catch
+\f2\b0 \cf0  (VillageSansChefException \cf4 e\cf0 ) \{\
+            \ul System.
+\f3\i\b \cf3 \ulc3 err
+\f2\i0\b0 \cf0 \ulnone .println(\cf6 "Erreur : "\cf0  + \cf4 e\cf0 .getMessage());\
+        \}\
+		\
+		Chef \cf4 abraracourcix\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Chef(\cf6 "Abraracourcix"\cf0 , 10, \cf4 village\cf0 );\
+		\cf4 village\cf0 .setChef(\cf4 abraracourcix\cf0 );\
+		Druide \cf4 druide\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Druide(\cf6 "Panoramix"\cf0 , 2, 5, 10);\
+		Gaulois \cf4 obelix\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Gaulois(\cf6 "Ob\'e9lix"\cf0 , 25);\
+		Gaulois \cf4 asterix\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Gaulois(\cf6 "Ast\'e9rix"\cf0 , 8);\
+		Gaulois \cf4 assurancetourix\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Gaulois(\cf6 "Assurancetourix"\cf0 , 2);\
+		Gaulois \cf4 bonemine\cf0  = 
+\f1\b \cf2 new
+\f2\b0 \cf0  Gaulois(\cf6 "Bonemine"\cf0 , 7);\
+		
+\f1\b \cf2 try
+\f2\b0 \cf0  \{\
+	        \ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .afficherVillageois());\
+	    \} 
+\f1\b \cf2 catch
+\f2\b0 \cf0  (VillageSansChefException \cf4 e\cf0 ) \{\
+	        \ul System.
+\f3\i\b \cf3 \ulc3 err
+\f2\i0\b0 \cf0 \ulnone .println(\cf6 "Erreur : "\cf0  + \cf4 e\cf0 .getMessage());\
+	    \}\
+		\
+		\cf4 village\cf0 .ajouterHabitant(\cf4 bonemine\cf0 );\
+		\cf4 village\cf0 .ajouterHabitant(\cf4 assurancetourix\cf0 );\
+		\cf4 village\cf0 .ajouterHabitant(\cf4 asterix\cf0 );\
+		\cf4 village\cf0 .ajouterHabitant(\cf4 obelix\cf0 );\
+		\cf4 village\cf0 .ajouterHabitant(\cf4 druide\cf0 );\
+		\cf4 village\cf0 .ajouterHabitant(\cf4 abraracourcix\cf0 );\
+		
+\f1\b \cf2 try
+\f2\b0 \cf0  \{\
+			\cf4 village\cf0 .afficherVillageois();\
+		\} 
+\f1\b \cf2 catch
+\f2\b0 \cf0  (VillageSansChefException \cf4 e\cf0 ) \{\
+\pard\pardeftab720\partightenfactor0
+\cf0 \ul \ulc0 			\cf5 \ulc5 // 
+\f1\b \cf7 \ulc7 TODO
+\f2\b0 \cf5 \ulc5  Auto-generated catch block\cf0 \ulnone \
+			\cf4 e\cf0 .printStackTrace();\
+		\}\
+		\
+\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .installerVendeur(\cf4 bonemine\cf0 , \cf6 \ul \ulc6 "fleurs"\cf0 \ulnone , 20));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .installerVendeur(\cf4 assurancetourix\cf0 , \cf6 "lyres"\cf0 , 5));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .installerVendeur(\cf4 obelix\cf0 , \cf6 "menhirs"\cf0 , 2));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .installerVendeur(\cf4 druide\cf0 , \cf6 "fleurs"\cf0 , 10));\
+\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .rechercherVendeursProduit(\cf6 "fleurs"\cf0 ));\
+		Etal \cf4 etalFleur\cf0  = \cf4 village\cf0 .rechercherEtal(\cf4 bonemine\cf0 );\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 etalFleur\cf0 .acheterProduit(10, \cf4 abraracourcix\cf0 ));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 etalFleur\cf0 .acheterProduit(15, \cf4 obelix\cf0 ));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 etalFleur\cf0 .acheterProduit(15, \cf4 assurancetourix\cf0 ));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .partirVendeur(\cf4 bonemine\cf0 ));\
+		\ul System.
+\f3\i\b \cf3 \ulc3 out
+\f2\i0\b0 \cf0 \ulnone .println(\cf4 village\cf0 .afficherMarche());\
+	\}\
+\
+\}\
+}

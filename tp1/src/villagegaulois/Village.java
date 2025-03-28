@@ -97,7 +97,7 @@ public class Village {
                     }
             }
         }
-        // Pour vérifier, affichons en debug la chaîne obtenue.
+        // Pour vérifier, debug .
         System.out.println("[DEBUG] rechercherVendeursProduit(\"" + produit + "\") retourne : " + chaine.toString());
         return chaine.toString();
     }
